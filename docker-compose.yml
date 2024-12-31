@@ -1,0 +1,11 @@
+
+services:
+  web:
+    build: .
+    ports:
+      - "8081:80"
+    volumes:
+      - ./index.html:/usr/share/nginx/html/index.html
+      - ./style.css:/usr/share/nginx/html/style.css
+      - ./script.js:/usr/share/nginx/html/script.js
+    container_name: calculator-app

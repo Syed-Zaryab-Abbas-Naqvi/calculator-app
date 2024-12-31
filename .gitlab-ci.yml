@@ -1,0 +1,43 @@
+stages:
+  - build
+  - test
+  - deploy
+
+variables:
+  DOCKER_IMAGE: "<your-dockerhub-username>/calculator-app"
+
+# Build Stage
+build:
+  stage: build
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$DOCKER_USERNAME" -p "$DOCKER_PASSWORD"
+  script:
+    - docker build -t $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA .
+    - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+
+# Test Stage
+test:
+  stage: test
+  image: python:3.9
+  script:
+    - pip install unittest
+    - python test_calculator.py
+  only:
+    - main
+
+# Deploy Stage
+deploy:
+  stage: deploy
+  image: google/cloud-sdk:latest
+  before_script:
+    - echo "$KUBE_CONFIG" | base64 -d > /root/.kube/config
+  script:
+    - kubectl apply -f k8s-deployment.yml
+    - kubectl apply -f k8s-service.yml
+  only:
+    - main
